@@ -270,10 +270,10 @@ class AbstractUser(ABC):
         if portal and portal.mxid:
             await portal.receive_telegram_pin_id(update.id, self.tgid)
 
-    @staticmethod
-    async def update_participants(update: UpdateChatParticipants) -> None:
+    async def update_participants(self, update: UpdateChatParticipants) -> None:
         portal = po.Portal.get_by_tgid(TelegramID(update.participants.chat_id))
         if portal and portal.mxid:
+            self.log.debug("LOGSPAM update_participants")
             await portal.update_telegram_participants(update.participants.participants)
 
     async def update_read_receipt(self, update: UpdateReadHistoryOutbox) -> None:

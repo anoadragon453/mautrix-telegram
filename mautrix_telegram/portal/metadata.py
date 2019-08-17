@@ -211,7 +211,10 @@ class PortalMetadata(BasePortal, ABC):
             if not users or not participants:
                 users, participants = await self._get_users(user, entity)
             await self._sync_telegram_users(user, users)
-            await self.update_telegram_participants(participants, levels)
+            try:
+                await self.update_telegram_participants(participants, levels)
+            except Exception:
+                self.log.exception("LOGSPAM failed to update telegram participants")
         else:
             if not puppet:
                 puppet = p.Puppet.get(self.tgid)
@@ -407,8 +410,12 @@ class PortalMetadata(BasePortal, ABC):
     async def update_telegram_participants(self, participants: List[TypeParticipant],
                                            levels: PowerLevelStateEventContent = None) -> None:
         if not levels:
+            self.log.debug(f"LOGSPAM update_telegram_participants 1")
             levels = await self.main_intent.get_power_levels(self.mxid)
+        self.log.debug(f"LOGSPAM update_telegram_participants 2: {levels}")
+        self.log.debug(f"LOGSPAM update_telegram_participants 3: {levels.serialize()}")
         if self._participants_to_power_levels(participants, levels):
+            self.log.debug(f"LOGSPAM update_telegram_participants 4: {levels.serialize()}")
             await self.main_intent.set_power_levels(self.mxid, levels)
 
     @property
