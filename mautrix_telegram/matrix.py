@@ -271,11 +271,15 @@ class MatrixHandler(BaseMatrixHandler):
             await portal.name_change_matrix(user, profile.displayname, prev_profile.displayname,
                                             event_id)
 
-    @staticmethod
-    def parse_read_receipts(content: ReceiptEventContent) -> Iterable[Tuple[UserID, EventID]]:
-        return ((user_id, event_id)
-                for event_id, receipts in content.items()
-                for user_id in receipts.get(ReceiptType.READ, {}))
+    @classmethod
+    def parse_read_receipts(cls, content: ReceiptEventContent) -> Iterable[Tuple[UserID, EventID]]:
+        try:
+            return ((user_id, event_id)
+                    for event_id, receipts in content.items()
+                    for user_id in receipts.get(ReceiptType.READ, {}))
+        except TypeError:
+            cls.log.exception(f"Failed to parse read receipts: {content}")
+            return []
 
     @staticmethod
     async def handle_read_receipts(room_id: RoomID, receipts: Iterable[Tuple[UserID, EventID]]
